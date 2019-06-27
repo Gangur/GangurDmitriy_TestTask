@@ -1,0 +1,133 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Пользовательская панель";
+    var list = Model.db.Beverage.ToList();
+    DateTime DateNull = new DateTime();
+    int I = 0;
+}
+
+<div class="text-center">
+    <h1>Напитки</h1>
+</div>
+<hr />
+@for (int i = 0; i < list.Count; i++)
+{
+    if (list[i].Removed == DateNull&&list[i].Amount>0)
+    {
+        @if (I % 3 == 0)
+        {
+            @Html.Raw("<div class='card-deck'>")
+        }
+
+        <div class="card" onclick="ShowModal('Modal_@list[i].Id')">
+            <img src="@list[i].PathToImage" class="card-img-top" alt="...">
+            <div class="card-body">
+                <h5 class="card-title">@list[i].Name</h5>
+                <p class="card-text">@list[i].Description</p>
+            </div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">Калорийность: @list[i].Calories</li>
+                <li class="list-group-item" id="Amount_@list[i].Id">Осталось: @list[i].Amount</li>
+            </ul>
+            <button class="btn btn-light btn-lg" data-toggle="modal" data-target="#Modal_@list[i].Id">Купить <span class="badge badge-danger">@list[i].Price ₽</span></button>
+        </div>
+
+        <div class="modal fade" id="Modal_@list[i].Id" tabindex="-1" role="dialog" aria-labelledby="ModalLabel_@list[i].Id" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="ModalLabel_@list[i].Id">@list[i].Name</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <img src="@list[i].PathToImage" style="width: 100%" />
+                        <h5 class="text-center">Уверенны что хотите купить @list[i].Name <span class="badge badge-danger">@list[i].Price ₽?</span></h5>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-lg " data-dismiss="modal">Закрыть</button>
+                        <button type="button" class="btn btn-danger btn-lg btn-block" data-dismiss="modal" onclick="BuyDrink(@list[i].Id)">Купить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (I % 3 == 2)
+        {
+            @Html.Raw("</div><br />")
+        }
+        I++;
+    }
+}
+
+<div class="modal fade bd-example-modal-sm" id="Modal_Success" tabindex="-1" role="dialog" aria-labelledby="ModalLabel_Success" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ModalLabel_Success">Успешно</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h2 class="text-center text-success">Успешно!</h2>
+                <h3 class="text-center">Приходите к нам еще!</h3>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-lg " data-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade bd-example-modal-sm" id="Modal_Danger" tabindex="-1" role="dialog" aria-labelledby="ModalLabel_Danger" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ModalLabel_Danger">Отказано</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h2 class="text-center text-danger">Отказано!</h2>
+                <h3 class="text-center">Недостаточно средств!</h3>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-lg " data-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script>
+    function ShowModal(id) {
+        $("#"+id).modal('show');
+    }
+
+    function BuyDrink(id) {
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("Post", "Ajax")',
+            data: "function=BuyDrink&value="+id,
+            success: function (data) {
+                
+                $('#results').html(data[1]);
+                $("#Amount_"+id).html("Осталось: "+data[2]);
+                
+                if (data[1] == "0") {
+                    $('#Surrender').prop('disabled', true);
+                }
+
+                if (data[0] == "Ok") {
+                    $('#Modal_Success').modal('show');
+                }
+                else {
+                    $('#Modal_Danger').modal('show');
+                }
+            }
+        });
+    }
+    </script>

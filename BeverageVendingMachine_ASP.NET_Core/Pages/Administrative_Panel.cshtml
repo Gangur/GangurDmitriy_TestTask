@@ -1,0 +1,236 @@
+﻿@page
+@model AdministrativePanel
+@{
+    ViewData["Title"] = "Административная панель";
+}
+
+
+<div class="text-center">
+    <h1>@ViewData["Title"]</h1>
+</div>
+<hr />
+
+@{
+    bool Access = Startup.Access;
+}
+
+@if (Access)
+{
+
+    <div class="card">
+        <h5 class="card-header text-center">Управление</h5>
+        <div class="card-body text-center">
+            <h4 class="card-title">Здесь вы можете добавить, удалить или изменить товарные пункты.</h4>
+            <p class="card-text">Для добавления кликните кнопку добавить. Для изменения или удаления товарных пунктов, кликните по соответствующей кнопке напротив необходимого наименования.</p>
+            <button style="width: 200px" class="btn btn-primary" data-toggle="modal" data-target="#AddExample">Добавить</button>
+        </div>
+    </div>
+    <br />
+
+    <div class="modal fade" id="AddExample" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Добавить товарный пункт</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-row">
+                            <div class="form-group col-md-8">
+                                <label for="Name">Название</label>
+                                <input type="text" class="form-control" name="Name" id="Name" placeholder="Name">
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="Amount">Количество</label>
+                                <input type="text" class="form-control" name="Amount" id="Amount" placeholder="Amount">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="Price">Цена</label>
+                                <input type="text" class="form-control" name="Price" id="Price" placeholder="Price">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="Calorie">Калорийность</label>
+                                <input type="text" class="form-control" name="Calories" id="Calorie" placeholder="Calorie">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="Description">Описание</label>
+                            <textarea class="form-control" name="Description" id="Description" rows="5" placeholder="Description"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="Image">Изображение</label>
+                            <input style="height: 40px" type="file" class="form-control" name="Photo" id="Image" multiple accept="image/*,image/jpeg">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                        <button type="submit" asp-page-handler="AddExemplar" class="btn btn-primary">Добавить</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card ">
+        <h4 class="card-header text-center text-center">Список товарных пунктов</h4>
+        <br />
+        <div class="row" style="margin-left: 30px">
+
+            <div class="col-md-1">
+                <h5>Id</h5>
+            </div>
+            <div class="col-md-2">
+                <h5>Name</h5>
+            </div>
+            <div class="col-md-2">
+                <h5>Калорийность</h5>
+            </div>
+            <div class="col-md-1">
+                <h5>Цена</h5>
+            </div>
+            <div class="col-md-2">
+                <h5>Создан</h5>
+            </div>
+            <div class="col-md-3">
+                <h5>Действия</h5>
+            </div>
+        </div>
+        <br />
+        @{
+            var list = Model.db.Beverage.ToList();
+            DateTime DateNull = new DateTime();
+        }
+
+        @foreach (BeverageVendingMachine_ASP.NET_Core.Models.Beverage u in list)
+        {
+            @if (@u.Removed == DateNull)
+            {
+                <div class="row" style="margin-left: 30px">
+
+                    <div class="col-md-1">
+                        <h5>@u.Id</h5>
+                    </div>
+                    <div class="col-md-2">
+                        <h5>@u.Name</h5>
+                    </div>
+                    <div class="col-md-2">
+                        <h5>@u.Calories кал.</h5>
+                    </div>
+                    <div class="col-md-1">
+                        <h5>@u.Price ₽</h5>
+                    </div>
+                    <div class="col-md-2">
+                        <h5>@u.Created.ToString("d")</h5>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-warning btn-block" data-toggle="modal" data-target="#EditExample_@u.Id">Изменить</button>
+                    </div>
+                    <div class="col-md-1">
+                        <form method="POST" enctype="multipart/form-data">
+                            <button class="btn btn-danger btn-block" type="submit" asp-page-handler="RemoveExemplar">X</button>
+                            <input type="hidden" name="Id" value="@u.Id" />
+                        </form>
+                    </div>
+                </div>
+                <br />
+
+                <div class="modal fade" id="EditExample_@u.Id" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel_@u.Id" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <form method="POST" enctype="multipart/form-data">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel_@u.Id">Изменить @u.Name</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="form-row">
+                                        <div class="form-group col-md-8">
+                                            <label for="Name">Название</label>
+                                            <input type="text" class="form-control" name="Name" id="Name" value="@u.Name" placeholder="Name">
+                                        </div>
+                                        <div class="form-group col-md-4">
+                                            <label for="Amount">Количество</label>
+                                            <input type="text" class="form-control" name="Amount" id="Amount" value="@u.Amount" placeholder="Amount">
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6">
+                                            <label for="Price">Цена</label>
+                                            <input type="text" class="form-control" name="Price" id="Price" value="@u.Price" placeholder="Price">
+                                        </div>
+                                        <div class="form-group col-md-6">
+                                            <label for="Calorie">Калорийность</label>
+                                            <input type="text" class="form-control" name="Calories" id="Calorie" value="@u.Calories" placeholder="Calorie">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Description">Описание</label>
+                                        <textarea class="form-control" name="Description" id="Description" rows="5" placeholder="Description">@u.Description</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Image">Изображение</label>
+                                        <input style="height: 40px" type="file" class="form-control" name="Photo" id="Image" multiple accept="image/*,image/jpeg">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <input type="hidden" name="Id" value="@u.Id" />
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                                    <button type="submit" asp-page-handler="EditExemplar" class="btn btn-warning">Применить</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+}
+else
+{
+<div class="row">
+    <div class="col-md-4"></div>
+    <div class="col-md-4">
+        <div class="card " style="width: 400px">
+            <h5 class="card-header text-center">Требуется авторизация</h5>
+            <div class="card-body text-center">
+                <form method="POST" enctype="multipart/form-data">
+                    @if (Startup.Attempts > 0)
+                    {
+                        <h3 style="color: forestgreen">У вас осталось попыток: @Startup.Attempts </h3>
+                    }
+                    else
+                    {
+                        <h3 style="color: crimson">У вас осталось попыток: @Startup.Attempts </h3>
+                    }
+                    <div class="form-group">
+                        <label for="Login">Логин</label>
+                        <input type="text" class="form-control" name="login" id="Login" placeholder="Enter login">
+                    </div>
+                    <div class="form-group">
+                        <label for="exampleInputPassword1">Пароль</label>
+                        <input type="password" class="form-control" name="password" id="Password" placeholder="Password">
+                    </div>
+                    @if (Startup.Attempts > 0)
+                    {
+                        <button type="submit" asp-page-handler="Authentication" style="width: 200px" class="btn btn-primary">Войти</button>
+                    }
+                    else
+                    {
+                        <h3 style="color: crimson">Вы израсходовали все попытки, через 10 минут вам будет доступна еще одна.</h3>
+                    }
+
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4"></div>
+</div>
+}
+
